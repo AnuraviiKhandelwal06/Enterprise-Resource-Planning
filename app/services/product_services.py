@@ -1,10 +1,14 @@
 from fastapi import HTTPException
-from app.database.database import products
+from app.repository.product_repository import ProductRepository
 
 
-class InventoryService:
+class ProductService:
 
-    def add_product(self, product):
+    def __init__(self):
+
+        self.repo = ProductRepository()
+
+    def add_product_service(self, product):
 
         if product.price < 0:
             raise HTTPException(
@@ -18,39 +22,47 @@ class InventoryService:
                 detail="Quantity should be positive."
             )
 
-        if product.name in products:
+        existing_product = self.repo.get_single_product(product.name)
 
-            products[product.name]["quantity"] += product.quantity
+        if existing_product:
+
+            self.repo.update_quantity_repo(
+                product.name,
+                product.quantity
+            )
 
             return {
-                "message": "Quantity updated successfully!!"
+                "message":
+                    "Product found. Quantity updated successfully!!"
             }
 
-        products[product.name] = {
-            "price": product.price,
-            "quantity": product.quantity
-        }
+        self.repo.add_product_repo(product)
 
         return {
             "message": "Product added successfully!!"
         }
 
-    def view_products(self):
-        return products
+    def view_products_service(self):
 
-    def search_product(self, item):
+        return self.repo.get_all_products()
 
-        if item not in products:
+    def search_product_service(self, item):
+
+        product = self.repo.get_single_product(item)
+
+        if not product:
             raise HTTPException(
                 status_code=404,
                 detail=f"{item} not found"
             )
 
-        return products[item]
+        return product
 
-    def update_price(self, item, obj):
+    def update_price_service(self, item, obj):
 
-        if item not in products:
+        product = self.repo.get_single_product(item)
+
+        if not product:
             raise HTTPException(
                 status_code=404,
                 detail="Item not found."
@@ -62,18 +74,22 @@ class InventoryService:
                 detail="Price should be positive."
             )
 
-        products[item]["price"] = obj.price
+        self.repo.update_price_repo(item, obj.price)
 
         return {
             "message": "Price updated successfully!!"
         }
 
-    def sell_product(self, model):
+    def sell_product_service(self, model):
 
-        if model.item_name not in products:
+        product = self.repo.get_single_product(
+            model.item_name
+        )
+
+        if not product:
             raise HTTPException(
                 status_code=404,
-                detail="Item out of stock!!"
+                detail=f"{model.item_name} out of stock!!"
             )
 
         if model.quantity <= 0:
@@ -82,7 +98,13 @@ class InventoryService:
                 detail="Quantity should be positive."
             )
 
-        available_quantity = products[model.item_name]["quantity"]
+        if model.selling_price < 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Selling price should be positive."
+            )
+
+        available_quantity = product["quantity"]
 
         if model.quantity > available_quantity:
             raise HTTPException(
@@ -90,13 +112,19 @@ class InventoryService:
                 detail=f"Only {available_quantity} items available."
             )
 
-        total_amount = model.quantity * model.selling_price
+        total_amount = (
+            model.quantity *
+            model.selling_price
+        )
 
-        products[model.item_name]["quantity"] -= model.quantity
+        self.repo.reduce_quantity_repo(
+            model.item_name,
+            model.quantity
+        )
 
         return {
             "items_sold": model.quantity,
             "total_amount": total_amount,
             "remaining_quantity":
-                products[model.item_name]["quantity"]
+                product["quantity"]
         }
