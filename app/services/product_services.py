@@ -81,50 +81,24 @@ class ProductService:
         }
 
     def sell_product_service(self, model):
-
-        product = self.repo.get_single_product(
-            model.item_name
-        )
-
-        if not product:
-            raise HTTPException(
-                status_code=404,
-                detail=f"{model.item_name} out of stock!!"
-            )
-
         if model.quantity <= 0:
             raise HTTPException(
                 status_code=400,
                 detail="Quantity should be positive."
-            )
-
+        )
         if model.selling_price < 0:
             raise HTTPException(
                 status_code=400,
                 detail="Selling price should be positive."
-            )
-
-        available_quantity = product["quantity"]
-
-        if model.quantity > available_quantity:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Only {available_quantity} items available."
-            )
-
-        total_amount = (
-            model.quantity *
+        )
+        result = self.repo.sell_product_repo(
+            model.item_name,
+            model.quantity,
             model.selling_price
         )
-
-        self.repo.reduce_quantity_repo(
-            model.item_name,
-            model.quantity
+        if result.get("message") == "Product not found":
+            raise HTTPException(
+            status_code=404,
+            detail="Product not found"
         )
-
-        return {
-            "items_sold": model.quantity,
-            "total_amount": total_amount,
-            "remaining_quantity":
-                product["quantity"]
-        }
+        return result
