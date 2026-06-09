@@ -1,7 +1,17 @@
 import streamlit as st
 import requests
 
-st.title("Delete Product")
+st.title("Delete Product (Soft Delete)")
+
+token = st.session_state.get("token")
+
+if not token:
+    st.error("Please login first")
+    st.stop()
+
+headers = {
+    "Authorization": f"Bearer {token}"
+}
 
 product_name = st.text_input("Enter Product Name")
 
@@ -13,24 +23,19 @@ if st.button("Delete Product"):
 
     try:
         response = requests.put(
-            f"http://127.0.0.1:8000/products/{product_name}"
+            f"http://127.0.0.1:8000/products/{product_name}",
+            headers=headers
         )
-        st.write("Status Code:", response.status_code)
-
-        try:
-            data = response.json()
-        except Exception:
-            st.error("Backend did not return valid JSON")
-            st.write("Raw Response:", response.text)
-            st.stop()
 
         if response.status_code == 200:
-            st.success("✅ Product soft deleted successfully")
-            st.json(data)
-        else:
-            st.error(
-                data.get("detail", data.get("message", "Something went wrong"))
-            )
+            st.success("Product soft deleted successfully")
+            st.json(response.json())
 
-    except requests.exceptions.RequestException as e:
-        st.error(f"Request failed: {e}")
+        else:
+            try:
+                st.error(response.json())
+            except:
+                st.error(response.text)
+
+    except Exception as e:
+        st.error(f"Error: {e}")

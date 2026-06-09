@@ -1,5 +1,4 @@
 from fastapi import APIRouter
-
 from app.models.product_model import (
     AddProduct,
     UpdatePrice,
@@ -12,7 +11,7 @@ router = APIRouter()
 controller = ProductController()
 
 @router.post("/products")
-def add_product(product: AddProduct):
+def add_product(product:AddProduct):
     return controller.add_product_controller(product)
 
 @router.get("/products")

@@ -1,6 +1,12 @@
 import streamlit as st
 import pandas as pd
 
+token = st.session_state.get("token")
+
+if not token:
+    st.error("Please login first")
+    st.stop()
+
 st.title("Analytics Dashboard")
 
 sales = pd.DataFrame({
