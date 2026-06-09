@@ -10,7 +10,6 @@ password = st.text_input(
 )
 
 if st.button("Login"):
-
     response = requests.post(
         "http://127.0.0.1:8000/login",
         json={
@@ -18,16 +17,11 @@ if st.button("Login"):
             "password": password
         }
     )
-
     if response.status_code == 200:
-
         data = response.json()
-
         st.session_state["token"] = (
             data["access_token"]
         )
-
         st.success("Login Successful")
-
     else:
         st.error("Invalid Credentials")

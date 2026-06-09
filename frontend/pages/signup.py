@@ -13,7 +13,6 @@ with st.form("signup_form"):
     submit = st.form_submit_button("Create Account")
 
 if submit:
-
     if not username.strip():
         st.warning("Please enter a username")
         st.stop()
@@ -36,11 +35,9 @@ if submit:
             f"{BASE_URL}/signup",
             json=payload
         )
-
         if response.status_code == 200 or response.status_code == 201:
             st.success("Account created successfully! You can now login.")
             st.json(response.json())
-
         else:
             try:
                 st.error(response.json().get("detail", "Signup failed"))

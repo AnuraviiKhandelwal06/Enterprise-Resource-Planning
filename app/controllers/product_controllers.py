@@ -1,6 +1,5 @@
 from app.services.product_services import ProductService
 
-
 class ProductController:
 
     def __init__(self):

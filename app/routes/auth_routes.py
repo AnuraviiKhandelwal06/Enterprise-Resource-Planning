@@ -8,11 +8,9 @@ router = APIRouter()
 
 controller = AuthController()
 
-
 @router.post("/signup")
 def signup(user: UserSignup):
     return controller.signup_controller(user)
-
 
 @router.post("/login")
 def login(user: UserLogin):

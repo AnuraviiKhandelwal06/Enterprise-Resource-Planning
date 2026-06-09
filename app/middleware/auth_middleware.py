@@ -1,8 +1,6 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
-
 from app.utils.auth import verify_token
-
 
 PUBLIC_ROUTES = [
     "/signup",
@@ -12,22 +10,17 @@ PUBLIC_ROUTES = [
     "/redoc"
 ]
 
-
 async def authenticate_request(
     request: Request,
     call_next
 ):
-
     path = request.url.path
-
     print("Middleware hit:", path)
 
-    # Allow public routes
     if path in PUBLIC_ROUTES:
         return await call_next(request)
-
+    
     authorization = request.headers.get("Authorization")
-
     print("Authorization Header:", authorization)
 
     if not authorization:
@@ -62,5 +55,4 @@ async def authenticate_request(
         )
 
     request.state.user = payload
-
     return await call_next(request)
